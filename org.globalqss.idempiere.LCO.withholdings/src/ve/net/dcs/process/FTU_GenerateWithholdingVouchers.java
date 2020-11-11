@@ -105,7 +105,7 @@ public class FTU_GenerateWithholdingVouchers extends SvrProcess {
 								+ " i.ad_org_id IN  (SELECT DISTINCT Node_ID FROM getnodes("+orgId+",(SELECT AD_Tree_ID FROM AD_Tree WHERE TreeType ='OO' "
 								+ "AND AD_Client_ID="+getAD_Client_ID()+"),"+getAD_Client_ID()+") AS N (Parent_ID numeric,Node_ID numeric) " 
 								+ " WHERE Parent_ID = "+orgId+") OR i.ad_org_id="+orgId+")"					
-							+ " AND i.dateinvoiced BETWEEN '"+dateDocFrom+"' AND '"+dateDocTo+"' ";
+							+ " AND i.dateacct BETWEEN '"+dateDocFrom+"' AND '"+dateDocTo+"' ";
 					
 				}else if(type.equalsIgnoreCase("ISLR")) {					
 					sql = "SELECT i.c_bpartner_id,i.ad_org_id"
@@ -120,7 +120,7 @@ public class FTU_GenerateWithholdingVouchers extends SvrProcess {
 								+ " i.ad_org_id IN  (SELECT DISTINCT Node_ID FROM getnodes("+orgId+",(SELECT AD_Tree_ID FROM AD_Tree WHERE TreeType ='OO' "
 									+ "AND AD_Client_ID="+getAD_Client_ID()+"),"+getAD_Client_ID()+") AS N (Parent_ID numeric,Node_ID numeric) " 
 									+ " WHERE Parent_ID = "+orgId+") OR i.ad_org_id="+orgId+")"						
-							+ " AND i.dateinvoiced BETWEEN '"+dateDocFrom+"' AND '"+dateDocTo+"' and (c.LCO_WithholdingCategory_ID > 0 OR p.LCO_WithholdingCategory_ID>0)";
+							+ " AND i.dateacct BETWEEN '"+dateDocFrom+"' AND '"+dateDocTo+"' and (c.LCO_WithholdingCategory_ID > 0 OR p.LCO_WithholdingCategory_ID>0)";
 					
 				}else if(type.equalsIgnoreCase("IAE")) {					
 					sql = "SELECT i.c_bpartner_id,i.ad_org_id"
@@ -132,7 +132,7 @@ public class FTU_GenerateWithholdingVouchers extends SvrProcess {
 								+ " i.ad_org_id IN  (SELECT DISTINCT Node_ID FROM getnodes("+orgId+",(SELECT AD_Tree_ID FROM AD_Tree WHERE TreeType ='OO' "
 								+ "AND AD_Client_ID="+getAD_Client_ID()+"),"+getAD_Client_ID()+") AS N (Parent_ID numeric,Node_ID numeric) " 
 								+ " WHERE Parent_ID = "+orgId+") OR i.ad_org_id="+orgId+")"					
-							+ " AND i.dateinvoiced BETWEEN '"+dateDocFrom+"' AND '"+dateDocTo+"' and bp.LCO_ISIC_ID > 0";
+							+ " AND i.dateacct BETWEEN '"+dateDocFrom+"' AND '"+dateDocTo+"' and bp.LCO_ISIC_ID > 0";
 				}				
 				
 				if(bPartnerId>0)
