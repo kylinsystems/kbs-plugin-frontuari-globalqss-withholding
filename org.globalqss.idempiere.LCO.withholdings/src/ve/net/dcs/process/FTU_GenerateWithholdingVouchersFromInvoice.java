@@ -87,7 +87,7 @@ public class FTU_GenerateWithholdingVouchersFromInvoice extends SvrProcess{
 				voucher.setC_Currency_ID(currencyId);
 				voucher.setC_ConversionType_ID(conversiontypeId);
 				voucher.saveEx(get_TrxName());
-				
+				ins = 0;
 				for (MInvoice invoice : getSelectedInvoiceOfBPartner(C_BPartner_ID,AD_Org_ID)) {
 					VWT_MInvoice inv = new VWT_MInvoice(getCtx(), invoice.getC_Invoice_ID(), get_TrxName());	
 					  int cont = inv.recalcWithholdings(voucher);
@@ -101,6 +101,7 @@ public class FTU_GenerateWithholdingVouchersFromInvoice extends SvrProcess{
 					String WithholdingNo = DB.getSQLValueString(get_TrxName(), "SELECT WithholdingNo FROM LVE_VoucherWithholding WHERE LVE_VoucherWithholding_ID=?", voucher.get_ID());
 					//String WithholdingNo = voucher.getWithholdingNo();
 					addBufferLog(voucher.get_ID(), new Timestamp(System.currentTimeMillis()), null, msg+": "+WithholdingNo, voucher.get_Table_ID(), voucher.get_ID());
+					cnt += ins;
 				}else {
 					voucher.deleteEx(true, get_TrxName());
 				}
