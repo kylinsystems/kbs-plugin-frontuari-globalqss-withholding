@@ -458,8 +458,15 @@ public class LCO_ValidatorWH extends AbstractEventHandler
 					if (!iwh.save())
 						return "Error saving LCO_InvoiceWithholding completePaymentWithholdings";
 						*/
-					String sql = "UPDATE LCO_InvoiceWithholding SET C_AllocationLine_ID=?,DateAcct=?,DateTrx=?,Processed='Y' WHERE C_Payment_ID = ? ";
-					DB.executeUpdate(sql,new Object[] {al.getC_AllocationLine_ID(),ah.getDateAcct(),ah.getDateTrx(),al.getC_Payment_ID()},true,line.get_TrxName());
+					/*String sql = "UPDATE LCO_InvoiceWithholding SET C_AllocationLine_ID=?,DateAcct=?,DateTrx=?,Processed='Y' WHERE C_Payment_ID = ? ";
+					DB.executeUpdate(sql,new Object[] {al.getC_AllocationLine_ID(),ah.getDateAcct(),ah.getDateTrx(),al.getC_Payment_ID()},true,line.get_TrxName());*/
+					if(al.getC_Invoice_ID()!=line.getC_Invoice_ID())
+						continue;
+					String sql = "UPDATE LCO_InvoiceWithholding SET C_AllocationLine_ID="+al.getC_AllocationLine_ID()+",DateAcct='"+ah.getDateAcct()
+					+ "',DateTrx='"+ah.getDateTrx()+"',Processed='Y' WHERE LCO_InvoiceWithholding_ID="+line.get_ValueAsInt("LCO_InvoiceWithholding_ID");
+					System.out.println(sql);
+					DB.executeUpdate(sql,true,line.get_TrxName());
+					
 				}
 			}
 		}
@@ -516,6 +523,7 @@ public class LCO_ValidatorWH extends AbstractEventHandler
 		FactsEventData fed = getEventData(event);
 		List<Fact> facts = fed.getFacts();
 		
+		
 		// one fact per acctschema
 		for (int i = 0; i < facts.size(); i++)
 		{
@@ -525,6 +533,7 @@ public class LCO_ValidatorWH extends AbstractEventHandler
 			MAllocationLine[] alloc_lines = ah.getLines(false);
 			for (int j = 0; j < alloc_lines.length; j++) {
 				BigDecimal tottax = new BigDecimal(0);
+				BigDecimal tottaxVE = new BigDecimal(0);
 				
 				MAllocationLine alloc_line = alloc_lines[j];
 				DocLine_Allocation docLine = new DocLine_Allocation(alloc_line, doc);
@@ -557,7 +566,7 @@ public class LCO_ValidatorWH extends AbstractEventHandler
 			 * @contribuitor Jorge Colmenarez 2017-08-15 3:15 PM, jcolmenarez@frontuari.com, Frontuari, C.A
 			 */
 			String sql = 
-					  "SELECT i.C_Tax_ID,NVL(SUM(i.TaxBaseAmt),0) AS TaxBaseAmt, NVL(SUM(i.TaxAmt),0) AS TaxAmt, " +
+					  "SELECT i.C_Tax_ID,COALESCE(SUM(i.TaxBaseAmt),0) AS TaxBaseAmt, COALESCE(SUM(i.TaxAmt),0) AS TaxAmt, " +
 					  "COALESCE(SUM( currencyconvert(i.TaxBaseAmt,ci.c_currency_id, (SELECT C_Currency_ID FROM C_AcctSchema WHERE AD_Client_ID = i.AD_Client_ID), " +
 					  "i.dateacct, ci.c_conversiontype_id, i.ad_client_id, i.ad_org_id) ),0) AS TaxBaseAmtVE, " +
 					  "COALESCE(SUM(currencyconvert(i.TaxAmt ,ci.c_currency_id, (SELECT C_Currency_ID FROM C_AcctSchema WHERE AD_Client_ID = i.AD_Client_ID), " +
@@ -592,7 +601,8 @@ public class LCO_ValidatorWH extends AbstractEventHandler
 						BigDecimal rate = rs.getBigDecimal(7);
 						boolean salesTax = rs.getString(8).equals("Y") ? true : false;
 						DocTax taxLine = new DocTax(tax_ID, name, rate, 
-								taxBaseAmt, amount, salesTax);
+								//taxBaseAmt, amount, salesTax);
+								taxBaseAmtVE, amountVE, salesTax);
 						
 						/*if (amount != null && amount.signum() != 0)
 						{
@@ -608,26 +618,29 @@ public class LCO_ValidatorWH extends AbstractEventHandler
 								tl.setC_Tax_ID(taxLine.getC_Tax_ID());
 							tottax = tottax.add(amount);
 						}*/
-						if (amount != null && amount.signum() != 0)
+						if (amountVE != null && amountVE.signum() != 0)
 						{
 							FactLine tl = null;
 							if ((invoice.isSOTrx() && invoice.getC_DocTypeTarget().getDocBaseType().compareTo("ARI")==0)){
 							//if ((invoice.isSOTrx() && invoice.getC_DocTypeTarget().getDocBaseType().compareTo("ARI")==0) || (!invoice.isSOTrx() && invoice.getC_DocTypeTarget().getDocBaseType().compareTo("APC")==0)) {
 								tl = fact.createLine(docLine, taxLine.getAccount(DocTax.ACCTTYPE_TaxDue, as),
-										docLine.getC_Currency_ID(), amount, null);
+										as.getC_Currency_ID(), amountVE, null);//amount
+							
 							} 
 							//** si es NC proveedor es un iva en compras
 							else if (!invoice.isSOTrx() && invoice.getC_DocTypeTarget().getDocBaseType().compareTo("APC")==0){
 								tl = fact.createLine(docLine, taxLine.getAccount(taxLine.getAPTaxType(), as),
-										docLine.getC_Currency_ID(), null, amount);
+										as.getC_Currency_ID(), null, amountVE);//amount
+
 							}
 							else {
 								tl = fact.createLine(docLine, taxLine.getAccount(taxLine.getAPTaxType(), as),
-										docLine.getC_Currency_ID(), null, amount);
+										as.getC_Currency_ID(), null, amountVE);//amount
 							}
 							if (tl != null)
 								tl.setC_Tax_ID(taxLine.getC_Tax_ID());
-							tottax = tottax.add(amount);
+							tottax = tottax.add(amount);//amount
+							tottaxVE = tottaxVE.add(amountVE);//amount
 						}
 					}
 				} catch (Exception e) {
@@ -650,6 +663,7 @@ public class LCO_ValidatorWH extends AbstractEventHandler
 							foundflwriteoff = true;
 							// old balance = DB - CR
 							BigDecimal balamt = fl.getAmtSourceDr().subtract(fl.getAmtSourceCr());
+							
 							// new balance = old balance +/- tottax
 							BigDecimal newbalamt = Env.ZERO;
 							if (invoice.isSOTrx())
@@ -678,12 +692,12 @@ public class LCO_ValidatorWH extends AbstractEventHandler
 						FactLine fl = null;
 						if (invoice.isSOTrx()) {
 							fl = fact.createLine (line, doc.getAccount(Doc.ACCTTYPE_WriteOff, as),
-									as.getC_Currency_ID(), null, tottax);
+									as.getC_Currency_ID(), null, tottaxVE);
 						} 
 
 						else {
 							fl = fact.createLine (line, doc.getAccount(Doc.ACCTTYPE_WriteOff, as),
-									as.getC_Currency_ID(), tottax, null);
+									as.getC_Currency_ID(), tottaxVE, null);
 						}
 						if (fl != null)
 							fl.setAD_Org_ID(ah.getAD_Org_ID());

@@ -149,7 +149,7 @@ public class MLVEVoucherWithholding extends X_LVE_VoucherWithholding implements 
 			return DocAction.STATUS_Invalid;
 		}
 
-		MPayment payment = new MPayment(getCtx(), 0, get_TrxName());
+		FTUWMPayment payment = new FTUWMPayment(getCtx(), 0, get_TrxName());
 		payment.setAD_Org_ID(getAD_Org_ID());
 		payment.setC_BankAccount_ID(C_BankAccount_ID);
 		payment.setDescription("Retencion No: " + getWithholdingNo());
@@ -243,7 +243,7 @@ public class MLVEVoucherWithholding extends X_LVE_VoucherWithholding implements 
 			pa.saveEx();
 		}
 		
-		if (!payment.processIt(MPayment.DOCACTION_Complete)) {
+		if (!payment.processIt(FTUWMPayment.DOCACTION_Complete)) {
 			log.warning("Payment Process Failed: " + payment + " - " + payment.getProcessMsg());
 			throw new AdempiereException("Payment Process Failed: " + payment + " - " + payment.getProcessMsg());
 		}
@@ -342,7 +342,7 @@ public class MLVEVoucherWithholding extends X_LVE_VoucherWithholding implements 
 				line.save(get_TrxName());
 			}
 			
-			MPayment pay = new MPayment(getCtx(), getC_Payment_ID(), get_TrxName());
+			FTUWMPayment pay = new FTUWMPayment(getCtx(), getC_Payment_ID(), get_TrxName());
 			pay.delete(true);
 
 		} else {
@@ -455,7 +455,7 @@ public class MLVEVoucherWithholding extends X_LVE_VoucherWithholding implements 
 				}
 			}
 
-			MPayment pay = new MPayment(getCtx(), getC_Payment_ID(), get_TrxName());
+			FTUWMPayment pay = new FTUWMPayment(getCtx(), getC_Payment_ID(), get_TrxName());
 			pay.voidIt();
 			pay.saveEx();
 
@@ -939,7 +939,7 @@ public class MLVEVoucherWithholding extends X_LVE_VoucherWithholding implements 
 				}
 			}
 
-			MPayment pay = new MPayment(getCtx(), getC_Payment_ID(), get_TrxName());
+			FTUWMPayment pay = new FTUWMPayment(getCtx(), getC_Payment_ID(), get_TrxName());
 			pay.voidIt();
 			pay.saveEx();
 		} else {
