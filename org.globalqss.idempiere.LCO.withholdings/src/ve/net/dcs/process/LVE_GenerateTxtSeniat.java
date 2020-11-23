@@ -22,6 +22,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
 
+import org.adempiere.exceptions.AdempiereException;
 import org.compiere.model.MAttachment;
 import org.compiere.model.MAttachmentEntry;
 import org.compiere.model.MTable;
@@ -105,36 +106,53 @@ public class LVE_GenerateTxtSeniat extends SvrProcess {
     
 		sql=("SELECT *"
 				+ " FROM lve_txtiva " 
-				+ " WHERE (" 
+				+ " WHERE (lve_txtiva.org = "+p_AD_Org_ID+" OR lve_txtiva.parent_org_id = "+p_AD_Org_ID+")" 
 				//+ " lve_txtiva.org = '" + p_AD_Org_ID + "' AND "
-					+ " lve_txtiva.org IN  (SELECT DISTINCT Node_ID FROM getnodes("+p_AD_Org_ID+",(SELECT AD_Tree_ID FROM AD_Tree WHERE TreeType ='OO' "
+				/*	+ " lve_txtiva.org IN  (SELECT DISTINCT Node_ID FROM getnodes("+p_AD_Org_ID+",(SELECT AD_Tree_ID FROM AD_Tree WHERE TreeType ='OO' "
 					+ "AND AD_Client_ID="+getAD_Client_ID()+"),"+getAD_Client_ID()+") AS N (Parent_ID numeric,Node_ID numeric) " 
-					+ " WHERE Parent_ID = "+p_AD_Org_ID+") OR lve_txtiva.org="+p_AD_Org_ID+")"		
+					+ " WHERE Parent_ID = "+p_AD_Org_ID+") OR lve_txtiva.org="+p_AD_Org_ID+")"*/		
 				+ " AND (lve_txtiva.fechareten BETWEEN '" + p_ValidFrom + "' AND '"+ p_ValidTo +"') AND"
 				+ " lve_txtiva.tipooperacion= '" + p_TypeOperation + "' " 
 				);
+		//sql = "select * from gg ";
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		
 		log.log(Level.INFO, "SQL: " + sql);
-
+		int cont = 0;
 		//BufferedWriter writer = new BufferedWriter(new FileWriter(archivo));
 		try {
-			pstmt = DB.prepareStatement(sql, null);
+			pstmt = DB.prepareStatement(sql, get_TrxName());
 			rs = pstmt.executeQuery();
 			while (rs.next())
 			{
-			contentTXT+=(rs.getString(1).trim()+"	"+rs.getString(2).trim()+"	"+rs.getString(3).trim()+"	"+rs.getString(4).trim()
-						+"	"+rs.getString(5).trim()+"	"+rs.getString(6).trim()+"	"+rs.getString(7).trim()+"	"+rs.getString(8).trim()+"	"+rs.getString(9).trim()
-						+"	"+rs.getString(10).trim()+"	"+rs.getString(11).trim()+"	"+rs.getString(12).trim()+"	"+rs.getString(13).trim()+"	"+rs.getString(14).trim()+"	"+rs.getString(15).trim()+"	"+rs.getString(16).trim());
+			contentTXT+=(rs.getString(1).trim()+"	"
+							+rs.getString(2).trim()+"	"
+							+rs.getString(3).trim()+"	"
+							+rs.getString(4).trim()+"	"
+							+rs.getString(5).trim()+"	"
+							+rs.getString(6).trim()+"	"
+							+rs.getString(7).trim()+"	"
+							+rs.getString(8).trim()+"	"
+							+rs.getString(9).trim()+"	"
+							+rs.getString(10).trim()+"	"
+							+rs.getString(11).trim()+"	"
+							+rs.getString(12).trim()+"	"
+							+rs.getString(13).trim()+"	"
+							+rs.getString(14).trim()+"	"
+							+rs.getString(15).trim()+"	"
+							+rs.getString(16).trim());
 			contentTXT+="\n";
+			cont ++;
 			}
-			pstmt.close();
+			
 			
 		}
 		catch ( Exception e )
         {
-            System.out.println(e.getMessage());
+            throw new AdempiereException(e);
+        }finally {
+        	DB.close(rs,pstmt);
         }
 		
 		log.info("Contenido: " + contentTXT);
@@ -148,6 +166,7 @@ public class LVE_GenerateTxtSeniat extends SvrProcess {
 			bw.close();	
 		}catch (IOException ioe) {
 			System.out.println("IOException: " + ioe.getMessage());
+            throw new AdempiereException("IOException: "+ioe);
 		}
 		
 		if (contentTXT !="")
@@ -176,8 +195,7 @@ public class LVE_GenerateTxtSeniat extends SvrProcess {
 				attach.addEntry(archivo);
 				attach.save();
 				}
-			
-			return "Archivo Generado y Anexado:  -> " + fileNameTXT + ", Refrescar Ventana y revisar en Anexos.	";
+			return "Archivo Generado y Anexado:  -> " + fileNameTXT + ", "+cont+"Retenciónes Procesadas, Refrescar Ventana y revisar en Anexos.	";
 			
 		} else
 			return "El Archivo no pudo ser Generado porque no hay retenciones de " + tipoOperacion + " para este periodo, desde: " + p_ValidFrom + ", hasta: " + p_ValidTo + ".";
