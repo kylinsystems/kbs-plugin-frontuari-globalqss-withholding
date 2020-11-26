@@ -113,6 +113,21 @@ public class FTU_GenerateWithholdingVouchersFromInvoice extends SvrProcess{
 				}
 				
 			}
+			
+			if(voucher.getDocStatus().equals(MLVEVoucherWithholding.DOCSTATUS_Drafted)) {
+				if(ins>0) {
+					if(docAction.equals("CO"))
+						processWithholding(voucher);
+					
+					voucher.saveEx(get_TrxName());
+					addBufferLog(voucher.get_ID(), new Timestamp(System.currentTimeMillis()), null, msg+": "+voucher.getWithholdingNo(), voucher.get_Table_ID(), voucher.get_ID());
+					cnt += ins;
+				}else {
+					if(voucher.get_ID()>0)
+					voucher.deleteEx(false, get_TrxName());
+				}
+			}
+			
 		}catch(Exception e) {
 			throw new AdempiereException(e);
 		}finally

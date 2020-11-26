@@ -118,9 +118,13 @@ public class MLVEVoucherWithholding extends X_LVE_VoucherWithholding implements 
 		//		Modificado por Jorge Colmenarez, 2017-08-15 2:42 PM jcolmenarez@frontuari.com
 		//		Soporte para crear nro de retención para los de tipo ISLR según secuencia de documento.
 		if (!wt.isSOTrx() && (type.compareTo("IVA")==0 || type.compareTo("ISLR")==0 || type.compareTo("IAE")==0)){
-			createWithholdingNo(wt);
+			String WithholdingNo = createWithholdingNo(wt);
+			if(WithholdingNo!=null)
+				setWithholdingNo(WithholdingNo);
 		}else if (wt.isSOTrx() && type.compareTo("IVA")!=0 && type.compareTo("ISLR")!=0 && type.compareTo("IAE")!=0) {
-			createWithholdingNo(wt);
+			String WithholdingNo = createWithholdingNo(wt);
+			if(WithholdingNo!=null)
+				setWithholdingNo(WithholdingNo);
 		} else if (wt.isSOTrx() && getWithholdingNo() == null && type.compareTo("IVA")==0){
 			// m_processMsg = "Asigne un Numero de Comprobante a la Retención";
 			// return DocAction.STATUS_Invalid;
@@ -374,7 +378,7 @@ public class MLVEVoucherWithholding extends X_LVE_VoucherWithholding implements 
 	}
 	
 
-	public void ValidateDeclarationGenerated() {
+	public void ValidateDeclarationGenerated() {/*
 		String sql = "SELECT i.C_Invoice_ID FROM C_InvoiceLine il"
 				+ " JOIN C_Invoice i ON il.C_Invoice_ID = i.C_Invoice_ID"
 				+ " WHERE i.DocStatus IN ('CO','CL','IP','DR') AND LVE_VoucherWithholding_ID ="+getLVE_VoucherWithholding_ID();
@@ -383,7 +387,7 @@ public class MLVEVoucherWithholding extends X_LVE_VoucherWithholding implements 
 			MInvoice inv = new MInvoice(getCtx(),C_Invoice_ID,get_TrxName());
 			throw new AdempiereException("No se puede anular o re-activar el documento porque este ya fue declarado en el documento no:"+inv.getDocumentNo());
 		}
-			
+			*/
 	}
 	
 	public String reActiveIt() {
@@ -488,7 +492,7 @@ public class MLVEVoucherWithholding extends X_LVE_VoucherWithholding implements 
 	/**
 	 * Set the definite document number after completed
 	 */
-	private void createWithholdingNo(X_LCO_WithholdingType wt) {
+	private String createWithholdingNo(X_LCO_WithholdingType wt) {
 		int C_DocType_ID = 0;//= wt.get_ValueAsInt("C_DocType_ID");
 		
 		String sql = "SELECT wdt.C_DocType_ID FROM LVE_WithholdingDocType wdt "
@@ -510,9 +514,13 @@ public class MLVEVoucherWithholding extends X_LVE_VoucherWithholding implements 
 			if (value != null){
 				value = year + month + value;
 				//setWithholdingNo(value);
-				DB.executeUpdate("UPDATE LVE_VoucherWithholding SET WithholdingNo='"+value+"' WHERE LVE_VoucherWithholding_ID = "+get_ID(),get_TrxName());
+				//DB.executeUpdate("UPDATE LVE_VoucherWithholding SET WithholdingNo='"+value+"' WHERE LVE_VoucherWithholding_ID = "+get_ID(),get_TrxName());
+				return value;
+			}else {
+				throw new AdempiereException("No se pudo encontrar el tipo de documento para la retención");
 			}
 		}
+		return null;
 	}
 
 	/**
