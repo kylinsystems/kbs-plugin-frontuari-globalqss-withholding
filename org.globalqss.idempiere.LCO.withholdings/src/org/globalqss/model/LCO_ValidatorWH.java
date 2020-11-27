@@ -567,11 +567,11 @@ public class LCO_ValidatorWH extends AbstractEventHandler
 			 */
 			String sql = 
 					  "SELECT i.C_Tax_ID,COALESCE(SUM(i.TaxBaseAmt),0) AS TaxBaseAmt, COALESCE(SUM(i.TaxAmt),0) AS TaxAmt, " +
-					  "COALESCE(SUM( currencyconvert(i.TaxBaseAmt,ci.c_currency_id, (SELECT C_Currency_ID FROM C_AcctSchema WHERE AD_Client_ID = i.AD_Client_ID), " +
+					  "COALESCE(SUM( currencyconvert(i.TaxBaseAmt,vw.c_currency_id, (SELECT C_Currency_ID FROM C_AcctSchema WHERE AD_Client_ID = i.AD_Client_ID), " +
 					  "i.dateacct, ci.c_conversiontype_id, i.ad_client_id, i.ad_org_id) ),0) AS TaxBaseAmtVE, " +
-					  "COALESCE(SUM(currencyconvert(i.TaxAmt ,ci.c_currency_id, (SELECT C_Currency_ID FROM C_AcctSchema WHERE AD_Client_ID = i.AD_Client_ID), " +
+					  "COALESCE(SUM(currencyconvert(i.TaxAmt ,vw.c_currency_id, (SELECT C_Currency_ID FROM C_AcctSchema WHERE AD_Client_ID = i.AD_Client_ID), " +
 					  "i.dateacct, ci.c_conversiontype_id, i.ad_client_id, i.ad_org_id)),0) AS TaxAmtVE, t.Name, t.Rate, t.IsSalesTax "
-					 + " FROM LCO_InvoiceWithholding i, C_Tax t, C_Invoice ci "
+					 + " FROM LVE_VoucherWithholding vw join LCO_InvoiceWithholding i ON vw.LVE_VoucherWithholding_ID = i.LVE_VoucherWithholding_ID, C_Tax t, C_Invoice ci "
 					+ " WHERE i.C_Invoice_ID = ? AND " +
 							 "i.IsCalcOnPayment = 'Y' AND " +
 							 "i.IsActive = 'Y' AND " +
