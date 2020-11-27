@@ -59,6 +59,7 @@ public class FTU_GenerateWithholdingVouchersFromInvoice extends SvrProcess{
 		
 		String sql = "SELECT src.C_Invoice_ID,src.lco_withholdingtype_id FROM FTU_WithholdingVoucherSrc src "
 				+ " WHERE EXISTS (SELECT 1 FROM T_Selection ts WHERE trim(ts.ViewID)::numeric = src.C_Invoice_ID AND ts.AD_PInstance_ID="+getAD_PInstance_ID()+")"
+						+ " AND src.lco_withholdingtype_id = "+withholdingType
 				+ " ORDER BY src.C_BPartner_ID, src.AD_Org_ID";
 		
 		PreparedStatement pstmt = null;
