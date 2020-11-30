@@ -79,6 +79,7 @@ public class LCO_ValidatorWH extends AbstractEventHandler
 		registerTableEvent(IEventTopics.DOC_BEFORE_COMPLETE, MInvoice.Table_Name);
 		registerTableEvent(IEventTopics.DOC_AFTER_COMPLETE, MInvoice.Table_Name);
 		//registerTableEvent(IEventTopics.DOC_BEFORE_COMPLETE, MPayment.Table_Name);
+		registerTableEvent(IEventTopics.DOC_BEFORE_COMPLETE, MAllocationHdr.Table_Name);
 		registerTableEvent(IEventTopics.DOC_AFTER_COMPLETE, MAllocationHdr.Table_Name);
 		//registerTableEvent(IEventTopics.DOC_BEFORE_POST, MAllocationHdr.Table_Name);
 		//registerTableEvent(IEventTopics.DOC_AFTER_POST, MAllocationHdr.Table_Name);
@@ -249,6 +250,22 @@ public class LCO_ValidatorWH extends AbstractEventHandler
 //			if (msg != null)
 //				throw new RuntimeException(msg);
 //		}
+
+		// update allocation org when comes from withholding and the orgs aren't the same
+		if (po.get_TableName().equals(MAllocationHdr.Table_Name) && type.equals(IEventTopics.DOC_BEFORE_COMPLETE)) {
+			MAllocationHdr all = (MAllocationHdr)po;
+			 String sql = "SELECT CASE WHEN allol.ad_org_id <> vw.ad_org_id THEN vw.ad_org_id ELSE 0 END FROM c_allocationline allol"
+			 		+ " JOIN c_payment p ON allol.c_payment_id = p.c_payment_id"
+			 		+ " JOIN c_paymentallocate pal ON p.c_payment_id = pal.c_payment_id"
+			 		+ " JOIN LCO_InvoiceWithholding iw ON pal.LCO_InvoiceWithholding_ID = iw.lco_invoicewithholding_id"
+			 		+ " JOIN lve_voucherwithholding vw ON iw.lve_voucherwithholding_id = vw.lve_voucherwithholding_id"
+			 		+ " WHERE allol.c_allocationhdr_id ="+all.getC_AllocationHdr_ID();
+			 int AD_Org_ID = DB.getSQLValue(po.get_TrxName(), sql);
+			 if(AD_Org_ID>0) {
+				 all.setAD_Org_ID(AD_Org_ID);
+				 all.saveEx(po.get_TrxName());
+			 }
+		}
 
 		// after completing the allocation - complete the payment withholdings  
 		if (po.get_TableName().equals(MAllocationHdr.Table_Name) && type.equals(IEventTopics.DOC_AFTER_COMPLETE)) {
@@ -464,7 +481,7 @@ public class LCO_ValidatorWH extends AbstractEventHandler
 						continue;
 					String sql = "UPDATE LCO_InvoiceWithholding SET C_AllocationLine_ID="+al.getC_AllocationLine_ID()+",DateAcct='"+ah.getDateAcct()
 					+ "',DateTrx='"+ah.getDateTrx()+"',Processed='Y' WHERE LCO_InvoiceWithholding_ID="+line.get_ValueAsInt("LCO_InvoiceWithholding_ID");
-					System.out.println(sql);
+					//System.out.println(sql);
 					DB.executeUpdate(sql,true,line.get_TrxName());
 					
 				}
