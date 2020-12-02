@@ -77,9 +77,29 @@ public class FTU_GenerateTaxReturn extends SvrProcess {
 	@Override
 	protected String doIt() throws Exception {
 		// TODO Auto-generated method stub
+		int cBPartnerId = 0;
 		
+		String sql = "";
 		
-		String sql ="SELECT vw.AD_Org_ID, vw.LVE_VoucherWithholding_ID, vw.WithholdingNo,COALESCE(SUM(iw.TaxAmt),0) as TaxAmt "
+		MLCOWithholdingType withHoldingType = new MLCOWithholdingType(getCtx(),withholdingType,get_TrxName());
+		
+		int docTypeId = (int)withHoldingType.get_Value("C_DocTypeInvoice_ID");
+		int chargeId = withHoldingType.get_ValueAsInt("C_Charge_ID");
+		if(withHoldingType.get_ValueAsString("Type").equals("IAE")) {
+			sql = "SELECT BPartnerMunicipalTaxReturn_ID FROM AD_OrgInfo WHERE AD_Org_ID="+orgId;
+			cBPartnerId = DB.getSQLValue(get_TrxName(), sql);
+		}else {
+			cBPartnerId = withHoldingType.get_ValueAsInt("C_BPartner_ID");			
+		}			
+			
+		if(docTypeId<=0)
+			throw new AdempiereException("El tipo de retención no tiene un tipo de documento asignado para la declaración");		
+		if(cBPartnerId<=0)
+			throw new AdempiereException("El tipo de retención no tiene un tercero asignado para la declaración");		
+		if(chargeId<=0)
+			throw new AdempiereException("El tipo de retención no tiene un cargo asignado para la declaración");
+	
+		sql ="SELECT vw.AD_Org_ID, vw.LVE_VoucherWithholding_ID, vw.WithholdingNo,COALESCE(SUM(iw.TaxAmt),0) as TaxAmt "
 					+ " FROM LVE_VoucherWithholding vw "
 					+ " INNER join LCO_InvoiceWithholding iw on iw.lve_voucherwithholding_id = vw.lve_voucherwithholding_id "
 					+ " WHERE vw.docstatus IN ('CO') AND vw.datetrx BETWEEN '"+dateFrom+"' AND '"+dateFromTo+"' AND vw.LCO_WithholdingType_ID="+withholdingType+" AND ("
@@ -91,19 +111,8 @@ public class FTU_GenerateTaxReturn extends SvrProcess {
 							+ " WHERE ci.LVE_VoucherWithholding_ID = vw.LVE_VoucherWithholding_ID AND c.docstatus NOT IN ('RE','VO'))"
 					+ " GROUP BY vw.AD_Org_ID,vw.LVE_VoucherWithholding_ID,vw.WithholdingNo ";
 		
-		MLCOWithholdingType withHoldingType = new MLCOWithholdingType(getCtx(),withholdingType,get_TrxName());
 		
-		int docTypeId = (int)withHoldingType.get_Value("C_DocTypeInvoice_ID");
-		int cBPartnerId = withHoldingType.get_ValueAsInt("C_BPartner_ID");
-		int chargeId = withHoldingType.get_ValueAsInt("C_Charge_ID");
-		
-		if(docTypeId<=0)
-			throw new AdempiereException("El tipo de retención no tiene un tipo de documento asignado para la declaración");		
-		if(cBPartnerId<=0)
-			throw new AdempiereException("El tipo de retención no tiene un tercero asignado para la declaración");		
-		if(chargeId<=0)
-			throw new AdempiereException("El tipo de retención no tiene un cargo asignado para la declaración");
-		
+			
 		MCharge charge = new MCharge(getCtx(),chargeId,get_TrxName());		
 
 		MBPartner partner = new MBPartner(getCtx(),cBPartnerId,get_TrxName());
