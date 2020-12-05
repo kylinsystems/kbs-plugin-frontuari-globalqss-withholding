@@ -117,14 +117,19 @@ public class MLVEVoucherWithholding extends X_LVE_VoucherWithholding implements 
 		String type=(String)wt.get_Value("type");
 		//		Modificado por Jorge Colmenarez, 2017-08-15 2:42 PM jcolmenarez@frontuari.com
 		//		Soporte para crear nro de retención para los de tipo ISLR según secuencia de documento.
+		
 		if (!wt.isSOTrx() && (type.compareTo("IVA")==0 || type.compareTo("ISLR")==0 || type.compareTo("IAE")==0)){
 			String WithholdingNo = createWithholdingNo(wt);
 			if(WithholdingNo!=null)
 				setWithholdingNo(WithholdingNo);
+			else
+				throw new AdempiereException("No se pudo asignar el numero de comprobante");
 		}else if (wt.isSOTrx() && type.compareTo("IVA")!=0 && type.compareTo("ISLR")!=0 && type.compareTo("IAE")!=0) {
 			String WithholdingNo = createWithholdingNo(wt);
 			if(WithholdingNo!=null)
 				setWithholdingNo(WithholdingNo);
+			else 
+				throw new AdempiereException("No se pudo asignar el numero de comprobante");
 		} else if (wt.isSOTrx() && getWithholdingNo() == null && type.compareTo("IVA")==0){
 			// m_processMsg = "Asigne un Numero de Comprobante a la Retención";
 			// return DocAction.STATUS_Invalid;
@@ -507,14 +512,14 @@ public class MLVEVoucherWithholding extends X_LVE_VoucherWithholding implements 
 		
 		// Setear secuencia al comprobante si no tiene.
 		if(getWithholdingNo() == null || getWithholdingNo() == "") {
-			String value = DB.getDocumentNo(dt.getC_DocType_ID(), get_TrxName(), false, this);
+			String value = DB.getSQLValueString(get_TrxName(), "SELECT NextDocNo("+C_DocType_ID+")");//DB.getDocumentNo(dt.getC_DocType_ID(), get_TrxName(), false, this);
 			String month = new SimpleDateFormat("MM").format(getDateTrx());
 			String year = new SimpleDateFormat("yyyy").format(getDateTrx());
 	
 			if (value != null){
 				value = year + month + value;
 				//setWithholdingNo(value);
-				//DB.executeUpdate("UPDATE LVE_VoucherWithholding SET WithholdingNo='"+value+"' WHERE LVE_VoucherWithholding_ID = "+get_ID(),get_TrxName());
+				DB.executeUpdate("UPDATE LVE_VoucherWithholding SET WithholdingNo='"+value+"' WHERE LVE_VoucherWithholding_ID = "+get_ID(),get_TrxName());
 				return value;
 			}else {
 				throw new AdempiereException("No se pudo encontrar el tipo de documento para la retención");
