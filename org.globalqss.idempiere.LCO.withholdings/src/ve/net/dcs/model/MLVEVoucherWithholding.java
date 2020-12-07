@@ -510,9 +510,12 @@ public class MLVEVoucherWithholding extends X_LVE_VoucherWithholding implements 
 		
 		MDocType dt = new MDocType(getCtx(), C_DocType_ID, get_TrxName());
 		
+		if(dt.getDocNoSequence_ID()<=0)
+			throw new AdempiereException("El tipo de documento para la retención no tiene una secuencia parametrizada");
+		
 		// Setear secuencia al comprobante si no tiene.
 		if(getWithholdingNo() == null || getWithholdingNo() == "") {
-			String value = DB.getSQLValueString(get_TrxName(), "SELECT NextDocNo("+C_DocType_ID+")");//DB.getDocumentNo(dt.getC_DocType_ID(), get_TrxName(), false, this);
+			String value = DB.getSQLValueString(get_TrxName(), "SELECT NextDocNo("+dt.getDocNoSequence_ID()+")");//DB.getDocumentNo(dt.getC_DocType_ID(), get_TrxName(), false, this);
 			String month = new SimpleDateFormat("MM").format(getDateTrx());
 			String year = new SimpleDateFormat("yyyy").format(getDateTrx());
 	
