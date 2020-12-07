@@ -13,7 +13,6 @@ import java.util.Properties;
 import java.util.logging.Level;
 
 import org.adempiere.exceptions.AdempiereException;
-import org.compiere.model.MAcctSchema;
 import org.compiere.model.MAllocationHdr;
 import org.compiere.model.MBPartner;
 import org.compiere.model.MBPartnerLocation;
@@ -383,7 +382,7 @@ public class MLVEVoucherWithholding extends X_LVE_VoucherWithholding implements 
 	}
 	
 
-	public void ValidateDeclarationGenerated() {/*
+	public void ValidateDeclarationGenerated() {
 		String sql = "SELECT i.C_Invoice_ID FROM C_InvoiceLine il"
 				+ " JOIN C_Invoice i ON il.C_Invoice_ID = i.C_Invoice_ID"
 				+ " WHERE i.DocStatus IN ('CO','CL','IP','DR') AND LVE_VoucherWithholding_ID ="+getLVE_VoucherWithholding_ID();
@@ -392,7 +391,6 @@ public class MLVEVoucherWithholding extends X_LVE_VoucherWithholding implements 
 			MInvoice inv = new MInvoice(getCtx(),C_Invoice_ID,get_TrxName());
 			throw new AdempiereException("No se puede anular o re-activar el documento porque este ya fue declarado en el documento no:"+inv.getDocumentNo());
 		}
-			*/
 	}
 	
 	public String reActiveIt() {
