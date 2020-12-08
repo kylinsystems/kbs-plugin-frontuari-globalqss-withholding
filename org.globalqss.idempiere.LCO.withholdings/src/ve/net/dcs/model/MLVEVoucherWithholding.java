@@ -121,13 +121,13 @@ public class MLVEVoucherWithholding extends X_LVE_VoucherWithholding implements 
 			String WithholdingNo = createWithholdingNo(wt);
 			if(WithholdingNo!=null)
 				setWithholdingNo(WithholdingNo);
-			else
+			else if(getWithholdingNo()==null || getWithholdingNo() == "")
 				throw new AdempiereException("No se pudo asignar el numero de comprobante");
 		}else if (wt.isSOTrx() && type.compareTo("IVA")!=0 && type.compareTo("ISLR")!=0 && type.compareTo("IAE")!=0) {
 			String WithholdingNo = createWithholdingNo(wt);
 			if(WithholdingNo!=null)
 				setWithholdingNo(WithholdingNo);
-			else 
+			else if(getWithholdingNo()==null || getWithholdingNo() == "")
 				throw new AdempiereException("No se pudo asignar el numero de comprobante");
 		} else if (wt.isSOTrx() && getWithholdingNo() == null && type.compareTo("IVA")==0){
 			// m_processMsg = "Asigne un Numero de Comprobante a la Retención";
