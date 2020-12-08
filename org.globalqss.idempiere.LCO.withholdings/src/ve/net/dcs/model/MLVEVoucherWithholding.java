@@ -186,7 +186,11 @@ public class MLVEVoucherWithholding extends X_LVE_VoucherWithholding implements 
 		
 		int C_Doctype_ID = wt.get_ValueAsInt("C_DocTypeTarget_ID");
 		payment.setC_DocType_ID(C_Doctype_ID);
-
+		//	Added By Jorge Colmenarez, 2020-12-08 16:37
+		//	Get DocumentNo from Database function
+		String DocumentNo = DB.getSQLValueString(this.get_TrxName(), "SELECT NextDocNo("+C_Doctype_ID+")");
+		payment.setDocumentNo(DocumentNo);
+		//	End Jorge Colmenarez
 		payment.saveEx();
 		String sql = null;
 
