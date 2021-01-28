@@ -26,6 +26,7 @@ import org.adempiere.exceptions.AdempiereException;
 import org.compiere.model.MBPartner;
 import org.compiere.model.MBPartnerLocation;
 import org.compiere.model.MConversionRate;
+import org.compiere.model.MCurrency;
 import org.compiere.model.MDocType;
 import org.compiere.model.MInvoice;
 import org.compiere.model.MLocation;
@@ -451,7 +452,7 @@ public class LCO_MInvoice extends MInvoice
 					iwh.setC_Tax_ID(tax.getC_Tax_ID());
 					iwh.setPercent(tax.getRate());
 					iwh.setProcessed(false);					
-					int stdPrecision = MPriceList.getStandardPrecision(getCtx(), getM_PriceList_ID());
+					int stdPrecision = MCurrency.getStdPrecision(getCtx(), getC_Currency_ID());//MPriceList.getStandardPrecision(getCtx(), getM_PriceList_ID());
 					BigDecimal taxamt = tax.calculateTax(base, false, stdPrecision);
 					if (wc.getAmountRefunded() != null &&
 							wc.getAmountRefunded().compareTo(Env.ZERO) > 0) {

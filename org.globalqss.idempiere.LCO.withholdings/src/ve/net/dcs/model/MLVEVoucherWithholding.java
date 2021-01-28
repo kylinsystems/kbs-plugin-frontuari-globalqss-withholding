@@ -26,6 +26,7 @@ import org.compiere.model.MOrgInfo;
 import org.compiere.model.MPayment;
 import org.compiere.model.MPaymentAllocate;
 import org.compiere.model.MPriceList;
+import org.compiere.model.MSysConfig;
 import org.compiere.model.MTax;
 import org.compiere.model.ModelValidationEngine;
 import org.compiere.model.ModelValidator;
@@ -290,9 +291,14 @@ public class MLVEVoucherWithholding extends X_LVE_VoucherWithholding implements 
 		if (getC_Payment_ID() > 0 && getDocStatus().equals(DOCSTATUS_Completed)) {
 
 			//add validation when the invoice has paid don't let me reactivate it or void it
-			ValidateInvoicesPayed();
+			boolean ValidateInvoicesPayed = MSysConfig.getBooleanValue("WT_ValidateInvoicesPayed", true);
+			if(ValidateInvoicesPayed)
+				ValidateInvoicesPayed();
 			
-			ValidateDeclarationGenerated();
+
+			boolean ValidateDeclarationGenerated = MSysConfig.getBooleanValue("WT_ValidateDeclarationGenerated", true);
+			if(ValidateDeclarationGenerated)
+				ValidateDeclarationGenerated();
 			/*
 			 * globalqss - 2317928 - Reactivating/Voiding order must reset
 			 * posted
@@ -402,12 +408,16 @@ public class MLVEVoucherWithholding extends X_LVE_VoucherWithholding implements 
 		log.info(toString());
 
 		if (getC_Payment_ID() > 0 && getDocStatus().equals(DOCSTATUS_Completed)) {
-			
+
 			//add validation when the invoice has paid don't let me reactivate it or void it
-			ValidateInvoicesPayed();
+			boolean ValidateInvoicesPayed = MSysConfig.getBooleanValue("WT_ValidateInvoicesPayed", true);
+			if(ValidateInvoicesPayed)
+				ValidateInvoicesPayed();
 			
-			ValidateDeclarationGenerated();
-			
+
+			boolean ValidateDeclarationGenerated = MSysConfig.getBooleanValue("WT_ValidateDeclarationGenerated", true);
+			if(ValidateDeclarationGenerated)
+				ValidateDeclarationGenerated();
 			/*
 			 * globalqss - 2317928 - Reactivating/Voiding order must reset
 			 * posted
@@ -908,9 +918,14 @@ public class MLVEVoucherWithholding extends X_LVE_VoucherWithholding implements 
 			
 
 			//add validation when the invoice has paid don't let me reactivate it or void it
-			ValidateInvoicesPayed();
+			boolean ValidateInvoicesPayed = MSysConfig.getBooleanValue("WT_ValidateInvoicesPayed", true);
+			if(ValidateInvoicesPayed)
+				ValidateInvoicesPayed();
 			
-			ValidateDeclarationGenerated();
+
+			boolean ValidateDeclarationGenerated = MSysConfig.getBooleanValue("WT_ValidateDeclarationGenerated", true);
+			if(ValidateDeclarationGenerated)
+				ValidateDeclarationGenerated();
 			
 			/*
 			 * globalqss - 2317928 - Reactivating/Voiding order must reset

@@ -480,7 +480,7 @@ public class LCO_ValidatorWH extends AbstractEventHandler
 					if(al.getC_Invoice_ID()!=line.getC_Invoice_ID())
 						continue;
 					String sql = "UPDATE LCO_InvoiceWithholding SET C_AllocationLine_ID="+al.getC_AllocationLine_ID()+",DateAcct='"+ah.getDateAcct()
-					+ "',DateTrx='"+ah.getDateTrx()+"',Processed='Y' WHERE LCO_InvoiceWithholding_ID="+line.get_ValueAsInt("LCO_InvoiceWithholding_ID");
+					+ "',DateTrx='"+ah.getDateTrx()+"',Processed='Y' WHERE C_Invoice_ID="+line.getC_Invoice_ID()+" AND LVE_VoucherWithholding_ID IN (SELECT LVE_VoucherWithholding_ID FROM LCO_InvoiceWithholding iw WHERE iw.LCO_InvoiceWithholding_ID="+line.get_ValueAsInt("LCO_InvoiceWithholding_ID")+")";
 					//System.out.println(sql);
 					DB.executeUpdate(sql,true,line.get_TrxName());
 					
